@@ -25,10 +25,95 @@ export const DEFAULT_SETTINGS: Settings = {
   register: {
     numRegistration: 1,
     emailDomain: "@gmail.com",
-    randomFirstNames: "",
-    randomLastNames: "",
-    randomUSZipCodes: "",
-    randomUSAreaCodes: "",
+    randomFirstNames: `James
+Robert
+John
+Michael
+William
+David
+Richard
+Joseph
+Thomas
+Charles
+Christopher
+Daniel
+Matthew
+Anthony
+Mark
+Elizabeth
+Patricia
+Jennifer
+Linda
+Barbara
+Susan
+Jessica
+Sarah
+Karen
+Nancy
+Lisa
+Betty
+Sandra
+Ashley
+Kimberly`,
+    randomLastNames: `Smith
+Johnson
+Williams
+Brown
+Jones
+Garcia
+Miller
+Davis
+Rodriguez
+Martinez
+Hernandez
+Lopez
+Gonzalez
+Wilson
+Anderson
+Thomas
+Taylor
+Moore
+Jackson
+Martin
+Lee
+Perez
+Thompson
+White
+Harris
+Sanchez
+Clark
+Ramirez
+Lewis`,
+    randomUSZipCodes: `10001
+90001
+60601
+73301
+94105
+30301
+33101
+19103
+80202
+15222
+02108
+97204
+75201
+85001
+48226`,
+    randomUSAreaCodes: `212
+213
+305
+312
+415
+469
+646
+702
+703
+718
+971
+206
+214
+512
+617`,
     password: "@Haivan2025",
     dobMonth: 11,
     dobDay: 23,

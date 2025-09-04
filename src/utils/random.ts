@@ -52,6 +52,6 @@ export function pickRandom(arr: string[]): string | null {
 }
 
 export function generatePhone(areaCodes: string[]): string {
-  const area = pickRandom(areaCodes) ?? '555'
+  const area = pickRandom(areaCodes) ?? '781'
   return `${area}${randomDigits(7)}`
 }

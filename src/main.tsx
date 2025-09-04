@@ -25,7 +25,7 @@ function fillRegisterForm(values: {
     alert('Helpers not injected'); 
     return 
   }
-  const { setVal, setSelect, setCheckbox } = api
+  const { setVal, setSelect, setCheckbox, clickButton  } = api
 
   setVal('#register-email', values.email)
 
@@ -46,6 +46,7 @@ function fillRegisterForm(values: {
       setSelect('#birthday--month', values.dobMonth.toString())
       setSelect('#birthday--day', values.dobDay.toString())
       setCheckbox('#tac', true)
+      setTimeout(() => clickButton({ text: 'Create Account', timeoutMs: 5000 }), 1000);
       return true
     }
     return false
@@ -127,7 +128,7 @@ function App() {
 
   return (
     <div style={{ padding: 16, fontFamily: 'system-ui, Arial', minWidth: 320 }}>
-      <h1 style={{ margin: 0, fontSize: 18 }}>BBW Helper</h1>
+      <h1 style={{ margin: 0, fontSize: 18 }}>BBW Extension</h1>
       <p style={{ marginTop: 6, color: '#555' }}>Chọn chức năng:</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>

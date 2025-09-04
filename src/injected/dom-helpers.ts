@@ -5,6 +5,7 @@ export type DomApi = {
     setVal: (selector: string, value: string) => boolean
     setSelect: (selector: string, value: string) => boolean
     setCheckbox: (selector: string, desired: boolean) => boolean
+    clickButton: (opts?: { selector?: string; text?: string; timeoutMs?: number }) => boolean
 }
 
 // Khai báo để TypeScript biết có gắn vào window
@@ -15,7 +16,7 @@ declare global {
 }
 
 (function attachHelpers() {
-    const setVal = (selector: string, value: string) => {
+    const setVal: DomApi['setVal'] = (selector: string, value: string) => {
         const el = document.querySelector<HTMLInputElement>(selector)
         if (!el) return false
         const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
@@ -26,7 +27,7 @@ declare global {
         return true
     }
 
-    const setSelect = (selector: string, value: string) => {
+    const setSelect: DomApi['setSelect'] = (selector: string, value: string) => {
         const el = document.querySelector<HTMLSelectElement>(selector)
         if (!el) return false
         el.value = value
@@ -34,7 +35,7 @@ declare global {
         return true
     }
 
-    const setCheckbox = (selector: string, checked: boolean) => {
+    const setCheckbox: DomApi['setCheckbox'] = (selector: string, checked: boolean) => {
         const input = document.querySelector<HTMLInputElement>(selector);
         if (!input || input.type !== 'checkbox') return false;
         if (input.disabled) return false;
@@ -103,10 +104,60 @@ declare global {
         return true;
     };
 
+    const isEnabledButton = (btn: Element) => {
+        const disabledAttr = btn.getAttribute('disabled')
+        const ariaDisabled = btn.getAttribute('aria-disabled')
+        const busy = btn.getAttribute('aria-busy')
+        return !disabledAttr && ariaDisabled !== 'true' && busy !== 'true'
+    }
+
+    const clickButton: DomApi['clickButton'] = ({ selector, text = 'Create Account', timeoutMs = 5000 } = {}) => {
+        const deadline = Date.now() + timeoutMs
+
+        const byText = (t: string) => {
+            const needle = (t || '').trim().toLowerCase()
+            const nodes = Array.from(document.querySelectorAll<HTMLElement>('button, [role="button"], input[type="submit"]'))
+            // ưu tiên button[type=submit] có text khớp
+            let found = nodes.find(el =>
+                el.tagName.toLowerCase() === 'button' &&
+                (el.getAttribute('type') || '').toLowerCase() === 'submit' &&
+                (el.textContent || '').trim().toLowerCase().includes(needle)
+            )
+            if (found) return found
+            return nodes.find(el => (el.textContent || '').trim().toLowerCase().includes(needle)) || null
+        }
+
+        const locate = () => {
+            let el: HTMLElement | null = null
+            if (selector) el = document.querySelector<HTMLElement>(selector)
+            if (!el && text) el = byText(text)
+            if (!el) el = document.querySelector<HTMLElement>('form button[type="submit"], form [role="button"][type="submit"], form input[type="submit"]')
+            return el
+        }
+
+        const tryClick = () => {
+            const btn = locate()
+            console.log('Located button:', btn)
+            if (!btn) return false
+            if (!isEnabledButton(btn)) return false
+            console.log('Clicking button', btn, btn.textContent)
+            btn.click()
+            return true
+        }
+
+        if (tryClick()) return true
+        const timer = setInterval(() => {
+            if (Date.now() > deadline) { clearInterval(timer); return }
+            if (tryClick()) clearInterval(timer)
+        }, 120)
+        return true
+    }
+
     // Gắn API lên window
     window.__bbwDom = {
         setVal,
         setSelect,
-        setCheckbox
+        setCheckbox,
+        clickButton 
     }
 })()
