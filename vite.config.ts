@@ -1,14 +1,22 @@
+// vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
   build: {
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'index.html'),
-        options: resolve(__dirname, 'options.html'),
+        popup: new URL('index.html', import.meta.url).pathname,
+        options: new URL('options.html', import.meta.url).pathname,
+        'dom-helpers': new URL('src/injected/dom-helpers.ts', import.meta.url).pathname,
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          // Giữ đường dẫn cố định cho helper
+          if (chunkInfo.name === 'dom-helpers') return 'injected/dom-helpers.js'
+          return '[name].js'
+        },
       },
     },
   },

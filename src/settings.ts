@@ -6,6 +6,9 @@ export type RegisterSettings = {
   randomLastNames: string
   randomUSZipCodes: string
   randomUSAreaCodes: string
+  password: string
+  dobMonth: number
+  dobDay: number
 }
 
 export type BuySettings = {
@@ -26,6 +29,9 @@ export const DEFAULT_SETTINGS: Settings = {
     randomLastNames: "",
     randomUSZipCodes: "",
     randomUSAreaCodes: "",
+    password: "@Haivan2025",
+    dobMonth: 11,
+    dobDay: 23,
   },
   buy: {
     promotionCodes: "",
@@ -50,6 +56,9 @@ export async function loadSettings(): Promise<Settings> {
             randomLastNames: raw.randomLastNames ?? DEFAULT_SETTINGS.register.randomLastNames,
             randomUSZipCodes: raw.randomUSZipCodes ?? DEFAULT_SETTINGS.register.randomUSZipCodes,
             randomUSAreaCodes: raw.randomUSAreaCodes ?? DEFAULT_SETTINGS.register.randomUSAreaCodes,
+            password: raw.password ?? DEFAULT_SETTINGS.register.password,
+            dobMonth: raw.dobMonth ?? DEFAULT_SETTINGS.register.dobMonth,
+            dobDay: raw.dobDay ?? DEFAULT_SETTINGS.register.dobDay,
           },
           buy: { 
             promotionCodes: raw.promotionCodes ?? DEFAULT_SETTINGS.buy.promotionCodes,

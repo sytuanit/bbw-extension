@@ -134,6 +134,45 @@ function App() {
                         }))}
                         style={{ width: '100%', padding: 8 }}
                     />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        password
+                    </label>
+                    <input
+                        type="password"
+                        value={settings.register.password}
+                        onChange={e => setSettings(s => ({
+                            ...s, register: { ...s.register, password: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                        placeholder="••••••••"
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        Date of Birth - Month (Zero base)
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.register.dobMonth}
+                        onChange={e => setSettings(s => ({
+                            ...s, register: { ...s.register, dobMonth: Number(e.target.value || 0) }
+                        }))}
+                        style={{ padding: 6, width: 120 }}
+                        placeholder="MM"
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        Date of Birth - Day
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.register.dobDay}
+                        onChange={e => setSettings(s => ({
+                            ...s, register: { ...s.register, dobDay: Number(e.target.value || 0) }
+                        }))}
+                        style={{ padding: 6, width: 120 }}
+                        placeholder="DD"
+                    />
                 </div>
             )}
 

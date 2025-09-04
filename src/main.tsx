@@ -1,32 +1,64 @@
 import { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { loadSettings, onSettingsChanged, type Settings } from './settings'
-import { generateRandomLocalPart, normalizeDomain } from './utils/random'
+import {
+  generateRandomLocalPart,
+  normalizeDomain,
+  splitLines,
+  pickRandom,
+  generatePhone,
+} from './utils/random'
 
 // Hàm sẽ chạy trong context của trang web (không truy cập biến ngoài)
-function fillEmailInPage(email: string) {
-  const el =
-    document.querySelector<HTMLInputElement>('#register-email') ||
-    document.querySelector<HTMLInputElement>('input[name="email"][data-dan-component="email-field--input"]')
+function fillRegisterForm(values: {
+  email: string
+  firstName: string
+  lastName: string
+  postalCode: string
+  phone: string
+  password: string
+  dobMonth: number
+  dobDay: number
+}) {
+  const api = window.__bbwDom
+  if (!api) { 
+    alert('Helpers not injected'); 
+    return 
+  }
+  const { setVal, setSelect, setCheckbox } = api
 
-  if (!el) {
-    alert('Không tìm thấy ô email (#register-email). Hãy mở đúng trang Registration.')
-    return
+  setVal('#register-email', values.email)
+
+  const waitAndFill = () => {
+    const first = document.querySelector<HTMLInputElement>('#firstName')
+    const last = document.querySelector<HTMLInputElement>('#lastName')
+    const zip = document.querySelector<HTMLInputElement>('#postalCode')
+    const phone = document.querySelector<HTMLInputElement>('#phone')
+    const password = document.querySelector<HTMLInputElement>('#password')
+
+    if (first && !first.disabled && last && !last.disabled && zip && !zip.disabled && phone && !phone.disabled && password && !password.disabled) {
+      // 3. Các field đã enable → điền value
+      setVal('#firstName', values.firstName)
+      setVal('#lastName', values.lastName)
+      setVal('#postalCode', values.postalCode)
+      setVal('#phone', values.phone)
+      setVal('#password', values.password)
+      setSelect('#birthday--month', values.dobMonth.toString())
+      setSelect('#birthday--day', values.dobDay.toString())
+      setCheckbox('#tac', true)
+      return true
+    }
+    return false
   }
 
-  // set value + fire events để React/Chakra nhận biết thay đổi
-  const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
-  if (nativeSetter) {
-    nativeSetter.call(el, email)
-  } else {
-    (el as HTMLInputElement).value = email
-  }
-
-  el.dispatchEvent(new Event('input', { bubbles: true }))
-  el.dispatchEvent(new Event('change', { bubbles: true }))
-
-  // focus để user thấy ngay
-  el.focus()
+  // Poll mỗi 300ms, tối đa 20 lần (~6 giây)
+  let attempts = 0
+  const timer = setInterval(() => {
+    if (waitAndFill() || attempts > 20) {
+      clearInterval(timer)
+    }
+    attempts++
+  }, 1000)
 }
 
 async function execInActiveTab(fn: (...args: any[]) => void, args: any[] = []) {
@@ -35,6 +67,10 @@ async function execInActiveTab(fn: (...args: any[]) => void, args: any[] = []) {
     alert('Không tìm thấy tab đang hoạt động.')
     return
   }
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ['injected/dom-helpers.js'], // file build từ TS
+  });
   await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func: fn,
@@ -55,21 +91,29 @@ function App() {
   const onRegister = async () => {
     if (!settings) return
     const r = settings.register
+
     const localPart = generateRandomLocalPart(r)
-    const domain = normalizeDomain(r.emailDomain || '@example.com')
+    const domain = normalizeDomain(r.emailDomain)
     const email = `${localPart}${domain}`
 
-    // (tuỳ chọn) kiểm tra đang ở đúng trang
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-    const expectedHost = 'www.bathandbodyworks.com'
-    if (!tab?.url?.includes('/registration') || !tab.url.includes(expectedHost)) {
-      const go = confirm(
-        'Tab hiện tại không phải trang Registration của B&BW. Bạn có muốn tiếp tục chích email vào trang hiện tại không?'
-      )
-      if (!go) return
-    }
+    const firstName = pickRandom(splitLines(r.randomFirstNames)) ?? 'John'
+    const lastName = pickRandom(splitLines(r.randomLastNames)) ?? 'Doe'
+    const postal = pickRandom(splitLines(r.randomUSZipCodes)) ?? '10001'
+    const phone = generatePhone(splitLines(r.randomUSAreaCodes))
+    const password = r.password || '@Haivan2025'
+    const dobMonth = r.dobMonth || 11
+    const dobDay = r.dobDay || 23
 
-    await execInActiveTab(fillEmailInPage, [email])
+    await execInActiveTab(fillRegisterForm, [{
+      email,
+      firstName,
+      lastName,
+      postalCode: postal,
+      phone,
+      password,
+      dobMonth,
+      dobDay
+    }])
   }
 
   const onBuy = () => {
