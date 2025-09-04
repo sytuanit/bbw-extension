@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "BBW Extension",
+  "version": "0.1.0",
+  "description": "Chrome extension popup built with React + Vite",
+  "action": {
+    "default_title": "Hello React",
+    "default_popup": "index.html"
+  },
+  "options_page": "options.html",
+  "permissions": ["storage", "scripting", "activeTab"]
+}
