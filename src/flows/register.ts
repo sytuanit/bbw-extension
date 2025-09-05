@@ -1,9 +1,11 @@
 import {
-    type RegisterSettings
+    type RegisterSettings,
+    type Settings
 } from '../settings'
 
 
-export async function register(settings: RegisterSettings) {
+export async function register(settings: Settings) {
+    const registerSettings: RegisterSettings = settings.register;
     const api = window.__bbwDom
     if (!api) {
         alert('Dom Helper is not injected');
@@ -11,7 +13,7 @@ export async function register(settings: RegisterSettings) {
     }
 
     const { printDebug, setVal, waitForSelector, setSelect, setCheckbox, clickButton, waitAndClick, waitForGone } = api
-    printDebug("register <- Enter", settings)
+    printDebug("register <- Enter", registerSettings)
 
     // Tách chuỗi thành array theo newline
     const splitLines = (s: string): string[] => {
@@ -76,19 +78,26 @@ export async function register(settings: RegisterSettings) {
         return `(${area}) ${prefix}-${lineNumber}`;
     };
 
+    const saveSetting = (s: Settings): Promise<void> => {
+        const KEY = 'userSettings'
+        return new Promise((resolve) => {
+            chrome.storage.sync.set({ [KEY]: s }, () => resolve())
+        })
+    }
+
     // Chuẩn bị dữ liệu
-    const localPart = generateRandomLocalPart(settings)
-    const domain = normalizeDomain(settings.emailDomain)
+    const localPart = generateRandomLocalPart(registerSettings)
+    const domain = normalizeDomain(registerSettings.emailDomain)
     const email = `${localPart}${domain}`
     printDebug(`Generated email: ${email}`)
 
-    const firstName = pickRandom(splitLines(settings.randomFirstNames)) ?? 'John'
-    const lastName = pickRandom(splitLines(settings.randomLastNames)) ?? 'Doe'
-    const postalCode = pickRandom(splitLines(settings.randomUSZipCodes)) ?? '10001'
-    const phone = generatePhone(splitLines(settings.randomUSAreaCodes))
-    const password = settings.password || '@Haivan2025'
-    const dobMonth = settings.dobMonth || 11
-    const dobDay = settings.dobDay || 23
+    const firstName = pickRandom(splitLines(registerSettings.randomFirstNames)) ?? 'John'
+    const lastName = pickRandom(splitLines(registerSettings.randomLastNames)) ?? 'Doe'
+    const postalCode = pickRandom(splitLines(registerSettings.randomUSZipCodes)) ?? '10001'
+    const phone = generatePhone(splitLines(registerSettings.randomUSAreaCodes))
+    const password = registerSettings.password || '@Haivan2025'
+    const dobMonth = registerSettings.dobMonth || 11
+    const dobDay = registerSettings.dobDay || 23
 
     // Chờ #register-email loaded và set value
     printDebug(`Waiting for #register-email to appear…`)
@@ -133,16 +142,42 @@ export async function register(settings: RegisterSettings) {
         return;
     }
 
+    // Chờ My Reward Wallet xuất hiện (nếu có)
+    const rewardWalletSel = '[data-dan-component="navlinks-wallet"]'
+    const rewardWalletElem = await waitForSelector(rewardWalletSel, { timeoutMs: 60000 })
+    if (rewardWalletElem) {
+        const okClick = await waitAndClick(rewardWalletSel, { timeoutMs: 60000, intervalMs: 200 })
+        printDebug(`Click My Rewards Wallet => ${okClick ? 'OK' : 'FAILED'}`)
+        if (okClick) {
+            const promotionCodeSel = '[data-dan-component="copy-reward-code"]'
+            const promotionCodeElem = await waitForSelector(promotionCodeSel, { timeoutMs: 60000 })
+            if (promotionCodeElem) {
+                const promotionCode = (promotionCodeElem?.textContent || '').trim();
+                printDebug(`Promotion code: ${promotionCode ? promotionCode : '(not found)'}`)
+                settings.buy.promotionCodes += (settings.buy.promotionCodes ? '\n' : '') + promotionCode
+                settings.collectedData.promotionCodes += (settings.collectedData.promotionCodes ? '\n' : '') + promotionCode
+                saveSetting(settings)
+                printDebug(`Saved promotion code to settings.`)
+            } else {
+                printDebug(`Promotion code element did not appear within timeout.`)
+            }
+        }
+    } else {
+        printDebug(`My Reward Wallet did not appear within timeout.`)
+    }
+
     // Chờ Sign Out xuất hiện, click, rồi chờ Sign Out biến mất (nếu chưa phải vòng cuối)
     const signOutSel = '[data-dan-component="navlinks-signout"]'
-    const signOutAppeared = await waitForSelector(signOutSel, { timeoutMs: 60000 })
-    if (!signOutAppeared) {
-        printDebug(`Sign Out did not appear within timeout.`)
-    } else {
+    const signOutElem = await waitForSelector(signOutSel, { timeoutMs: 60000 })
+    if (signOutElem) {
         const okClick = await waitAndClick(signOutSel, { timeoutMs: 60000, intervalMs: 200 })
         printDebug(`Click Sign Out => ${okClick ? 'OK' : 'FAILED'}`)
-        const gone = await waitForGone(signOutSel, { timeoutMs: 60000, intervalMs: 200 })
-        printDebug(`Sign Out gone => ${gone ? 'YES' : 'NO (timeout)'}`)
+        if (okClick) {
+            const gone = await waitForGone(signOutSel, { timeoutMs: 60000, intervalMs: 200 })
+            printDebug(`Sign Out gone => ${gone ? 'YES' : 'NO (timeout)'}`)
+        }
+    } else {
+        printDebug(`Sign Out did not appear within timeout.`)
     }
 
     printDebug("register -> Leave")

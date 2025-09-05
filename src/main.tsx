@@ -84,7 +84,7 @@ function App() {
       await waitForTabComplete(tabId)
       log.debug(`[${i + 1}/${loops}] - Navigated to registration page.`)
 
-      await execInActiveTab(register, [settings.register])
+      await execInActiveTab(register, [settings])
     }
   }
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from '../settings'
 
-type Tab = 'register' | 'buy'
+type Tab = 'register' | 'buy' | 'collectedData'
 
 function App() {
     const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
@@ -12,7 +12,10 @@ function App() {
     const [tab, setTab] = useState<Tab>('register')
 
     useEffect(() => {
-        loadSettings().then(s => { setSettings(s); setLoading(false) })
+        loadSettings().then(s => { 
+            setSettings(s)
+            setLoading(false) 
+        })
     }, [])
 
     const canSave = useMemo(() => !loading && !saving, [loading, saving])
@@ -51,6 +54,14 @@ function App() {
                         background: tab === 'buy' ? '#eef' : '#fff'
                     }}>
                     Buy
+                </button>
+                <button
+                    onClick={() => setTab('collectedData')}
+                    style={{
+                        padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd',
+                        background: tab === 'collectedData' ? '#eef' : '#fff'
+                    }}>
+                    Collected Data
                 </button>
             </div>
 
@@ -215,6 +226,25 @@ function App() {
                         onChange={e => setSettings(s => ({
                             ...s,
                             buy: { ...s.buy, giftCardCodes: e.target.value }
+                        }))}
+                        style={{ width: '100%', padding: 8 }}
+                    />
+                </div>
+            )}
+
+            {tab === 'collectedData' && (
+                <div>
+                    <h2 style={{ fontSize: 16, margin: '8px 0' }}>Collected Data</h2>
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        promotionCodes
+                    </label>
+                    <textarea
+                        rows={5}
+                        value={settings.collectedData.promotionCodes}
+                        onChange={e => setSettings(s => ({
+                            ...s,
+                            collectedData: { ...s.collectedData, promotionCodes: e.target.value }
                         }))}
                         style={{ width: '100%', padding: 8 }}
                     />
