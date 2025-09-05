@@ -78,11 +78,8 @@ export async function register(settings: Settings) {
         return `(${area}) ${prefix}-${lineNumber}`;
     };
 
-    const saveSetting = (s: Settings): Promise<void> => {
-        const KEY = 'userSettings'
-        return new Promise((resolve) => {
-            chrome.storage.sync.set({ [KEY]: s }, () => resolve())
-        })
+    const saveSetting = (promotionCode: string) => {
+        chrome.runtime.sendMessage({ type: 'BBW_PROMOTION_CODE_COLLECTED', data: promotionCode })
     }
 
     // Chuẩn bị dữ liệu
@@ -154,9 +151,7 @@ export async function register(settings: Settings) {
             if (promotionCodeElem) {
                 const promotionCode = (promotionCodeElem?.textContent || '').trim();
                 printDebug(`Promotion code: ${promotionCode ? promotionCode : '(not found)'}`)
-                settings.buy.promotionCodes += (settings.buy.promotionCodes ? '\n' : '') + promotionCode
-                settings.collectedData.promotionCodes += (settings.collectedData.promotionCodes ? '\n' : '') + promotionCode
-                saveSetting(settings)
+                saveSetting(promotionCode)
                 printDebug(`Saved promotion code to settings.`)
             } else {
                 printDebug(`Promotion code element did not appear within timeout.`)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
   loadSettings,
@@ -44,10 +44,42 @@ async function execInActiveTab(fn: (...args: any[]) => any, args: any[] = []) {
 
 function App() {
   const [settings, setSettings] = useState<Settings | null>(null)
+  const settingsRef = useRef<Settings | null>(null)
 
   useEffect(() => {
     loadSettings().then(setSettings)
     return onSettingsChanged(setSettings)
+  }, [])
+
+  useEffect(() => {
+    settingsRef.current = settings
+  }, [settings])
+
+  useEffect(() => {
+    const handler = (msg: any) => {
+      switch (msg?.type) {
+        case 'BBW_LOG':
+          log.debug(msg.data)
+          break
+          
+        case 'BBW_PROMOTION_CODE_COLLECTED':
+          const s = settingsRef.current
+          if (!s) return
+          const promotionCode = msg.data
+          log.debug(`Saving promotion code to settings: ${promotionCode}`)
+          s.buy.promotionCodes += (s.buy.promotionCodes ? '\n' : '') + promotionCode
+          s.collectedData.promotionCodes += (s.collectedData.promotionCodes ? '\n' : '') + promotionCode
+          setSettings({ ...s })
+          chrome.storage.sync.set({ userSettings: s })
+          log.debug(`Saved promotion code to settings.`)
+          break
+        default:
+          break
+      }
+    }
+
+    chrome.runtime.onMessage.addListener(handler)
+    return () => chrome.runtime.onMessage.removeListener(handler)
   }, [])
 
   const openOptions = () => chrome.runtime.openOptionsPage()
@@ -83,7 +115,6 @@ function App() {
       await chrome.tabs.update(tabId, { url: settings.register.registrationUrl })
       await waitForTabComplete(tabId)
       log.debug(`[${i + 1}/${loops}] - Navigated to registration page.`)
-
       await execInActiveTab(register, [settings])
     }
   }
@@ -128,9 +159,3 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
-
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === 'BBW_LOG') {
-    log.debug(msg.line)
-  }
-})

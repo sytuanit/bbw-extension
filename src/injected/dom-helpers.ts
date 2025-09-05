@@ -33,9 +33,7 @@ declare global {
 
     const printDebug: DomApi['printDebug'] = (msg: any, ...args: any[]) => {
         const line = `${msg} ${args.map(a => JSON.stringify(a)).join(' ')}`
-        try {
-            chrome.runtime.sendMessage({ type: 'BBW_LOG', line })
-        } catch { }
+        chrome.runtime.sendMessage({ type: 'BBW_LOG', data: line })
     }
 
     const isEnabled = (el: HTMLElement | null) => {
