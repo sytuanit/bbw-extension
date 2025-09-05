@@ -57,6 +57,19 @@ function App() {
             {tab === 'register' && (
                 <div>
                     <h2 style={{ fontSize: 16, margin: '8px 0' }}>Register Settings</h2>
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        registrationUrl
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.register.registrationUrl}
+                        onChange={e => setSettings(s => ({
+                            ...s, register: { ...s.register, registrationUrl: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
                     <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
                         numRegistration
                     </label>

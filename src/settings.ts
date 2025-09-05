@@ -1,5 +1,6 @@
 // --- types ---
 export type RegisterSettings = {
+  registrationUrl: string
   numRegistration: number
   emailDomain: string
   randomFirstNames: string
@@ -23,6 +24,7 @@ export type Settings = {
 
 export const DEFAULT_SETTINGS: Settings = {
   register: {
+    registrationUrl: "https://www.bathandbodyworks.com/registration",
     numRegistration: 1,
     emailDomain: "@gmail.com",
     randomFirstNames: `James
@@ -135,6 +137,7 @@ export async function loadSettings(): Promise<Settings> {
       if (raw && !('register' in raw) && !('buy' in raw)) {
         const migrated: Settings = {
           register: {
+            registrationUrl: raw.registrationUrl ?? DEFAULT_SETTINGS.register.registrationUrl,
             numRegistration: raw.numRegistration ?? DEFAULT_SETTINGS.register.numRegistration,
             emailDomain: raw.emailDomain ?? DEFAULT_SETTINGS.register.emailDomain,
             randomFirstNames: raw.randomFirstNames ?? DEFAULT_SETTINGS.register.randomFirstNames,

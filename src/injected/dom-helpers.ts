@@ -2,10 +2,24 @@
 
 // (tuỳ chọn) type cho API để IDE gợi ý
 export type DomApi = {
+    printDebug: (msg: any, ...args: any[]) => void
     setVal: (selector: string, value: string) => boolean
     setSelect: (selector: string, value: string) => boolean
     setCheckbox: (selector: string, desired: boolean) => boolean
     clickButton: (opts?: { selector?: string; text?: string; timeoutMs?: number }) => boolean
+    waitForSelector: (
+        selector: string,
+        opts?: { timeoutMs?: number; intervalMs?: number, mustBeEnabled?: boolean }
+    ) => Promise<HTMLElement | null>
+    waitForGone: (
+        selector: string,
+        opts?: { timeoutMs?: number; intervalMs?: number }
+    ) => Promise<boolean>
+    waitAndClick: (
+        selector: string,
+        opts?: { timeoutMs?: number; intervalMs?: number; mustBeEnabled?: boolean }
+    ) => Promise<boolean>
+    navigateTo: (url: string) => void
 }
 
 // Khai báo để TypeScript biết có gắn vào window
@@ -16,6 +30,23 @@ declare global {
 }
 
 (function attachHelpers() {
+
+    const printDebug: DomApi['printDebug'] = (msg: any, ...args: any[]) => {
+        const line = `${msg} ${args.map(a => JSON.stringify(a)).join(' ')}`
+        try {
+            chrome.runtime.sendMessage({ type: 'BBW_LOG', line })
+        } catch { }
+    }
+
+    const isEnabled = (el: HTMLElement | null) => {
+        if (!el) return false
+        const anyEl = el as any
+        // input/textarea/select thường có thuộc tính disabled/readOnly; thêm aria-disabled cho chắc
+        const disabled = !!(anyEl.disabled || anyEl.readOnly)
+        const ariaDisabled = (el.getAttribute('aria-disabled') || '').toLowerCase() === 'true'
+        return !disabled && !ariaDisabled
+    }
+
     const setVal: DomApi['setVal'] = (selector: string, value: string) => {
         const el = document.querySelector<HTMLInputElement>(selector)
         if (!el) return false
@@ -137,10 +168,8 @@ declare global {
 
         const tryClick = () => {
             const btn = locate()
-            console.log('Located button:', btn)
             if (!btn) return false
             if (!isEnabledButton(btn)) return false
-            console.log('Clicking button', btn, btn.textContent)
             btn.click()
             return true
         }
@@ -153,11 +182,56 @@ declare global {
         return true
     }
 
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+    const waitForSelector: DomApi['waitForSelector'] = async (selector, opts): Promise<HTMLElement | null> => {
+        const timeoutMs = opts?.timeoutMs ?? 60000
+        const intervalMs = opts?.intervalMs ?? 200
+        const mustBeEnabled = opts?.mustBeEnabled ?? false
+        const start = Date.now()
+        while (Date.now() - start <= timeoutMs) {
+            const el = document.querySelector<HTMLElement>(selector)
+            if (el && (!mustBeEnabled || isEnabled(el))) return el
+            await sleep(intervalMs)
+        }
+        return null
+    }
+
+    const waitForGone: DomApi['waitForGone'] = async (selector: string, opts): Promise<boolean> => {
+        const timeoutMs = opts?.timeoutMs ?? 60000
+        const intervalMs = opts?.intervalMs ?? 200
+        const start = Date.now()
+        while (Date.now() - start <= timeoutMs) {
+            const el = document.querySelector<HTMLElement>(selector)
+            if (!el) return true
+            await sleep(intervalMs)
+        }
+        return false
+    }
+
+    const waitAndClick: DomApi['waitAndClick'] = async (selector, opts) => {
+        const el = await waitForSelector(selector, {
+            timeoutMs: opts?.timeoutMs,
+            intervalMs: opts?.intervalMs,
+            mustBeEnabled: opts?.mustBeEnabled ?? true
+        })
+        if (!el) return false
+            ; (el as HTMLElement).click()
+        return true
+    }
+
+    const navigateTo: DomApi['navigateTo'] = (url) => { location.href = url }
+
     // Gắn API lên window
     window.__bbwDom = {
+        printDebug,
         setVal,
         setSelect,
         setCheckbox,
-        clickButton 
+        clickButton,
+        waitForSelector,
+        waitForGone,
+        waitAndClick,
+        navigateTo,
     }
 })()
