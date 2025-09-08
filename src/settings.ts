@@ -20,8 +20,17 @@ export type BuySettings = {
   productUrl: string
   numBuy: number
   quantityPerBuy: number
-  giftCardCode: string
+  giftCardCodes: string
   promotionCodes: string
+  firstName: string
+  lastName: string
+  address1: string
+  address2: string
+  country: string
+  city: string
+  state: string
+  zipCode: string
+  phone: string
 }
 
 export type Settings = {
@@ -46,8 +55,17 @@ export const DEFAULT_SETTINGS: Settings = {
     productUrl: "https://www.bathandbodyworks.com/p/in-the-stars-fine-fragrance-mist-028017806",
     numBuy: 1,
     quantityPerBuy: 2,
-    giftCardCode: "",
+    giftCardCodes: "",
     promotionCodes: "",
+    firstName: "",
+    lastName: "",
+    address1: "",
+    address2: "",
+    country: "US",
+    city: "",
+    state: "",
+    zipCode: "",
+    phone: "",
   },
 }
 
@@ -77,8 +95,17 @@ export async function loadSettings(): Promise<Settings> {
             productUrl: raw.productUrl ?? DEFAULT_SETTINGS.buy.productUrl,
             numBuy: raw.numBuy ?? DEFAULT_SETTINGS.buy.numBuy,
             quantityPerBuy: raw.quantityPerBuy ?? DEFAULT_SETTINGS.buy.quantityPerBuy,
-            giftCardCode: raw.giftCardCodes ?? DEFAULT_SETTINGS.buy.giftCardCode,
+            giftCardCodes: raw.giftCardCodes ?? DEFAULT_SETTINGS.buy.giftCardCodes,
             promotionCodes: raw.promotionCodes ?? DEFAULT_SETTINGS.buy.promotionCodes,
+            firstName: raw.firstName ?? DEFAULT_SETTINGS.buy.firstName,
+            lastName: raw.lastName ?? DEFAULT_SETTINGS.buy.lastName,
+            address1: raw.address1 ?? DEFAULT_SETTINGS.buy.address1,
+            address2: raw.address2 ?? DEFAULT_SETTINGS.buy.address2,
+            country: raw.country ?? DEFAULT_SETTINGS.buy.country,
+            city: raw.city ?? DEFAULT_SETTINGS.buy.city,
+            state: raw.state ?? DEFAULT_SETTINGS.buy.state,
+            zipCode: raw.zipCode ?? DEFAULT_SETTINGS.buy.zipCode,
+            phone: raw.phone ?? DEFAULT_SETTINGS.buy.phone,
           },
         }
         resolve({ ...DEFAULT_SETTINGS, ...migrated })

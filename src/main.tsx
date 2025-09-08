@@ -94,14 +94,14 @@ function App() {
             const consumed = msg.data.code
             const rest = msg.data.rest
             log.debug(`Promotion code consumed: ${consumed}, rest: ${rest}`)
-            setSettings(prev => {
-              if (!prev) return prev
-              const next = { ...prev, buy: { ...prev.buy, promotionCodes: rest } }
-              settingsRef.current = next
-              chrome.storage.sync.set({ userSettings: next })
-              return next;
-            });
-            log.debug(`Saved promotion code to settings.`)
+            // setSettings(prev => {
+            //   if (!prev) return prev
+            //   const next = { ...prev, buy: { ...prev.buy, promotionCodes: rest } }
+            //   settingsRef.current = next
+            //   chrome.storage.sync.set({ userSettings: next })
+            //   return next;
+            // });
+            // log.debug(`Saved promotion code to settings.`)
           }
           break
 

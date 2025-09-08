@@ -235,14 +235,14 @@ function App() {
                     />
 
                     <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
-                        giftCardCode (Single value)
+                        giftCardCodes
                     </label>
                     <textarea
                         rows={5}
-                        value={settings.buy.giftCardCode}
+                        value={settings.buy.giftCardCodes}
                         onChange={e => setSettings(s => ({
                             ...s,
-                            buy: { ...s.buy, giftCardCode: e.target.value }
+                            buy: { ...s.buy, giftCardCodes: e.target.value }
                         }))}
                         style={{ width: '100%', padding: 8 }}
                     />
@@ -258,6 +258,114 @@ function App() {
                             buy: { ...s.buy, promotionCodes: e.target.value }
                         }))}
                         style={{ width: '100%', padding: 8 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        firstName
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.firstName}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, firstName: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        lastName
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.lastName}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, lastName: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        address1
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.address1}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, address1: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        address2 (optional)
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.address2}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, address2: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        country
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.country}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, country: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        city
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.city}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, city: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        state
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.state}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, state: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        zipCode
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.zipCode}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, zipCode: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        phone
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.phone}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, phone: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
                     />
                 </div>
             )}

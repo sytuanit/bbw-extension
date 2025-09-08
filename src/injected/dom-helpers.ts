@@ -2,6 +2,7 @@
 
 // (tuỳ chọn) type cho API để IDE gợi ý
 export type DomApi = {
+    delay: (ms: number) => Promise<void>
     printDebug: (msg: any, ...args: any[]) => void
     setVal: (selector: string, value: string) => boolean
     setSelect: (selector: string, value: string) => boolean
@@ -18,6 +19,8 @@ export type DomApi = {
     click: (el: HTMLElement) => Promise<boolean>
     deepClick: (el: HTMLElement) => Promise<boolean>
     navigateTo: (url: string) => void
+    isElemExist: (selector: string) => boolean
+    selectElem: (selector: string) => HTMLElement | null
 }
 
 // Khai báo để TypeScript biết có gắn vào window
@@ -28,6 +31,8 @@ declare global {
 }
 
 (function attachHelpers() {
+
+    const delay = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
 
     const printDebug: DomApi['printDebug'] = (msg: any, ...args: any[]) => {
         const line = `${msg} ${args.map(a => JSON.stringify(a)).join(' ')}`
@@ -235,10 +240,21 @@ declare global {
         return ok;
     }
 
-    const navigateTo: DomApi['navigateTo'] = (url) => { location.href = url }
+    const navigateTo: DomApi['navigateTo'] = (url: string) => { location.href = url }
+
+    const isElemExist: DomApi['isElemExist'] = (selector: string): boolean => {
+        const el = document.querySelector<HTMLElement>(selector)
+        if (!el) return true
+        return false
+    }
+
+    const selectElem: DomApi['selectElem'] = (selector: string): HTMLElement | null => {
+        return document.querySelector<HTMLElement>(selector)
+    }
 
     // Gắn API lên window
     window.__bbwDom = {
+        delay,
         printDebug,
         setVal,
         setSelect,
@@ -248,6 +264,8 @@ declare global {
         waitForGone,
         navigateTo,
         click,
-        deepClick
+        deepClick,
+        isElemExist,
+        selectElem
     }
 })()
