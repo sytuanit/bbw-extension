@@ -17,18 +17,16 @@ export type RegisterSettings = {
 }
 
 export type BuySettings = {
-  promotionCodes: string
-  giftCardCodes: string
-}
-
-export type CollectedData = {
+  productUrl: string
+  numBuy: number
+  quantityPerBuy: number
+  giftCardCode: string
   promotionCodes: string
 }
 
 export type Settings = {
   register: RegisterSettings
   buy: BuySettings
-  collectedData: CollectedData
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -41,16 +39,16 @@ export const DEFAULT_SETTINGS: Settings = {
     randomUSZipCodes: usZipCodes,
     randomUSAreaCodes: usAreaCodes,
     password: "@Haivan2025",
-    dobMonth: 11,
+    dobMonth: 12,
     dobDay: 23,
   },
   buy: {
+    productUrl: "https://www.bathandbodyworks.com/p/in-the-stars-fine-fragrance-mist-028017806",
+    numBuy: 1,
+    quantityPerBuy: 2,
+    giftCardCode: "",
     promotionCodes: "",
-    giftCardCodes: "",
   },
-  collectedData: {
-    promotionCodes: "",
-  }
 }
 
 const KEY = 'userSettings'
@@ -75,13 +73,13 @@ export async function loadSettings(): Promise<Settings> {
             dobMonth: raw.dobMonth ?? DEFAULT_SETTINGS.register.dobMonth,
             dobDay: raw.dobDay ?? DEFAULT_SETTINGS.register.dobDay,
           },
-          buy: { 
+          buy: {
+            productUrl: raw.productUrl ?? DEFAULT_SETTINGS.buy.productUrl,
+            numBuy: raw.numBuy ?? DEFAULT_SETTINGS.buy.numBuy,
+            quantityPerBuy: raw.quantityPerBuy ?? DEFAULT_SETTINGS.buy.quantityPerBuy,
+            giftCardCode: raw.giftCardCodes ?? DEFAULT_SETTINGS.buy.giftCardCode,
             promotionCodes: raw.promotionCodes ?? DEFAULT_SETTINGS.buy.promotionCodes,
-            giftCardCodes: raw.giftCardCodes ?? DEFAULT_SETTINGS.buy.giftCardCodes,
           },
-          collectedData: { 
-            promotionCodes: raw.promotionCodes ?? DEFAULT_SETTINGS.collectedData.promotionCodes,
-          }
         }
         resolve({ ...DEFAULT_SETTINGS, ...migrated })
         return

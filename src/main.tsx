@@ -7,6 +7,9 @@ import {
 } from './settings'
 import { Log } from './utils/log'
 import { register } from './flows/register'
+import { buy } from './flows/buy'
+import { Consts } from './utils/consts'
+import { delay } from './utils/promis-helper'
 
 const log = new Log()
 
@@ -58,21 +61,50 @@ function App() {
   useEffect(() => {
     const handler = (msg: any) => {
       switch (msg?.type) {
-        case 'BBW_LOG':
+        case Consts.Events.LOG_REQUESTED:
           log.debug(msg.data)
           break
-          
-        case 'BBW_PROMOTION_CODE_COLLECTED':
-          const s = settingsRef.current
-          if (!s) return
-          const promotionCode = msg.data
-          log.debug(`Saving promotion code to settings: ${promotionCode}`)
-          s.buy.promotionCodes += (s.buy.promotionCodes ? '\n' : '') + promotionCode
-          s.collectedData.promotionCodes += (s.collectedData.promotionCodes ? '\n' : '') + promotionCode
-          setSettings({ ...s })
-          chrome.storage.sync.set({ userSettings: s })
-          log.debug(`Saved promotion code to settings.`)
+
+        case Consts.Events.PROMOTION_CODE_COLLECTED:
+          {
+            log.debug('Received message:', msg)
+            const promotionCode = String(msg.data || '').trim()
+            if (!promotionCode) return
+            setSettings(prev => {
+              if (!prev) return prev
+              const next = {
+                ...prev,
+                buy: {
+                  ...prev.buy,
+                  promotionCodes:
+                    (prev.buy.promotionCodes ? prev.buy.promotionCodes + '\n' : '') + promotionCode,
+                },
+              };
+              settingsRef.current = next;
+              chrome.storage.sync.set({ userSettings: next })
+              log.debug(`Saved promotion code to settings.`)
+              return next;
+            });
+          }
           break
+
+        case Consts.Events.PROMOTION_CODE_CONSUMED:
+          {
+            log.debug('Received message:', msg)
+            const consumed = msg.data.code
+            const rest = msg.data.rest
+            log.debug(`Promotion code consumed: ${consumed}, rest: ${rest}`)
+            setSettings(prev => {
+              if (!prev) return prev
+              const next = { ...prev, buy: { ...prev.buy, promotionCodes: rest } }
+              settingsRef.current = next
+              chrome.storage.sync.set({ userSettings: next })
+              return next;
+            });
+            log.debug(`Saved promotion code to settings.`)
+          }
+          break
+
         default:
           break
       }
@@ -98,6 +130,12 @@ function App() {
 
   const onRegister = async () => {
     if (!settings) {
+      alert('Settings not loaded yet, please wait a moment and try again.')
+      return
+    }
+
+    if (!settings.register.registrationUrl) {
+      alert('Registration URL is not set.')
       return
     }
 
@@ -115,17 +153,38 @@ function App() {
       await chrome.tabs.update(tabId, { url: settings.register.registrationUrl })
       await waitForTabComplete(tabId)
       log.debug(`[${i + 1}/${loops}] - Navigated to registration page.`)
-      await execInActiveTab(register, [settings])
+      await execInActiveTab(register, [settings.register])
     }
   }
 
-  const onBuy = () => {
-    const b = settings?.buy
-    alert(
-      `Buy clicked!\n` +
-      `promotionCodes=${b?.promotionCodes.split(/\r?\n/).filter(Boolean).length} items\n` +
-      `giftCardCodes=${b?.giftCardCodes.split(/\r?\n/).filter(Boolean).length} items`
-    )
+  const onBuy = async () => {
+    if (!settings) {
+      return
+    }
+
+    if (!settings.buy.productUrl) {
+      alert('Product URL is not set.')
+      return
+    }
+
+    const loops = Math.max(1, Number(settings.buy.numBuy || 1))
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    if (!tab?.id) {
+      alert('Không tìm thấy tab đang hoạt động.');
+      return
+    }
+
+    const tabId = tab.id
+    log.debug(`Starting buy loop, total ${loops} buys, tabId: ${tabId}`)
+
+    for (let i = 0; i < loops; i++) {
+      const s = settingsRef.current!;
+      await chrome.tabs.update(tabId, { url: s.buy.productUrl })
+      await waitForTabComplete(tabId)
+      log.debug(`[${i + 1}/${loops}] - Navigated to buy page.`)
+      await execInActiveTab(buy, [s.buy])
+      await delay(1000);
+    }
   }
 
   return (

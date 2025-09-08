@@ -7,18 +7,16 @@ export type DomApi = {
     setSelect: (selector: string, value: string) => boolean
     setCheckbox: (selector: string, desired: boolean) => boolean
     clickButton: (opts?: { selector?: string; text?: string; timeoutMs?: number }) => boolean
-    waitForSelector: (
+    waitForSelector: <T extends Element = HTMLElement>(
         selector: string,
         opts?: { timeoutMs?: number; intervalMs?: number, mustBeEnabled?: boolean }
-    ) => Promise<HTMLElement | null>
+    ) => Promise<T | null>
     waitForGone: (
         selector: string,
         opts?: { timeoutMs?: number; intervalMs?: number }
     ) => Promise<boolean>
-    waitAndClick: (
-        selector: string,
-        opts?: { timeoutMs?: number; intervalMs?: number; mustBeEnabled?: boolean }
-    ) => Promise<boolean>
+    click: (el: HTMLElement) => Promise<boolean>
+    deepClick: (el: HTMLElement) => Promise<boolean>
     navigateTo: (url: string) => void
 }
 
@@ -33,7 +31,7 @@ declare global {
 
     const printDebug: DomApi['printDebug'] = (msg: any, ...args: any[]) => {
         const line = `${msg} ${args.map(a => JSON.stringify(a)).join(' ')}`
-        chrome.runtime.sendMessage({ type: 'BBW_LOG', data: line })
+        chrome.runtime.sendMessage({ type: 'LOG_REQUESTED', data: line })
     }
 
     const isEnabled = (el: HTMLElement | null) => {
@@ -182,14 +180,14 @@ declare global {
 
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
-    const waitForSelector: DomApi['waitForSelector'] = async (selector, opts): Promise<HTMLElement | null> => {
+    const waitForSelector: DomApi['waitForSelector'] = async <T extends Element = HTMLElement>(selector: string, opts?: any): Promise<T | null> => {
         const timeoutMs = opts?.timeoutMs ?? 60000
         const intervalMs = opts?.intervalMs ?? 200
         const mustBeEnabled = opts?.mustBeEnabled ?? false
         const start = Date.now()
         while (Date.now() - start <= timeoutMs) {
-            const el = document.querySelector<HTMLElement>(selector)
-            if (el && (!mustBeEnabled || isEnabled(el))) return el
+            const el = document.querySelector<T>(selector)
+            if (el && (!mustBeEnabled || isEnabled(el as unknown as HTMLElement))) return el
             await sleep(intervalMs)
         }
         return null
@@ -207,15 +205,34 @@ declare global {
         return false
     }
 
-    const waitAndClick: DomApi['waitAndClick'] = async (selector, opts) => {
-        const el = await waitForSelector(selector, {
-            timeoutMs: opts?.timeoutMs,
-            intervalMs: opts?.intervalMs,
-            mustBeEnabled: opts?.mustBeEnabled ?? true
-        })
+    const click: DomApi['click'] = async (el: HTMLElement) => {
         if (!el) return false
-            ; (el as HTMLElement).click()
+        el.click()
         return true
+    }
+
+    const deepClick: DomApi['deepClick'] = async (btn: HTMLElement): Promise<boolean> => {
+        if (!btn) return false;
+        btn.scrollIntoView({ block: 'center', inline: 'center' });
+
+        const r = btn.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+
+        // phần tử sâu nhất tại toạ độ (thường là <span> hoặc <svg>)
+        let target = document.elementFromPoint(x, y) as HTMLElement | null;
+        if (!target || !btn.contains(target)) target = btn; // fallback
+
+        // nếu CSS đặt pointer-events:none ở icon, event sẽ đi xuyên xuống button
+        // nhưng dispatch trực tiếp lên button vẫn ok vì target===button
+        const ptr = { bubbles: true, cancelable: true, pointerId: 1, isPrimary: true, button: 0 } as PointerEventInit;
+        const mouse = { bubbles: true, cancelable: true, button: 0 } as MouseEventInit;
+
+        target.dispatchEvent(new PointerEvent('pointerdown', ptr));
+        target.dispatchEvent(new MouseEvent('mousedown', mouse));
+        target.dispatchEvent(new PointerEvent('pointerup', ptr));
+        const ok = target.dispatchEvent(new MouseEvent('click', mouse));
+        return ok;
     }
 
     const navigateTo: DomApi['navigateTo'] = (url) => { location.href = url }
@@ -229,7 +246,8 @@ declare global {
         clickButton,
         waitForSelector,
         waitForGone,
-        waitAndClick,
         navigateTo,
+        click,
+        deepClick
     }
 })()

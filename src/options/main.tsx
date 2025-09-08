@@ -55,14 +55,6 @@ function App() {
                     }}>
                     Buy
                 </button>
-                <button
-                    onClick={() => setTab('collectedData')}
-                    style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd',
-                        background: tab === 'collectedData' ? '#eef' : '#fff'
-                    }}>
-                    Collected Data
-                </button>
             </div>
 
             {tab === 'register' && (
@@ -78,7 +70,7 @@ function App() {
                         onChange={e => setSettings(s => ({
                             ...s, register: { ...s.register, registrationUrl: e.target.value }
                         }))}
-                        style={{ padding: 6, width: 220 }}
+                        style={{ padding: 6, width: '100%' }}
                     />
 
                     <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
@@ -173,7 +165,7 @@ function App() {
                     />
 
                     <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
-                        Date of Birth - Month (Zero base)
+                        Date of Birth - Month
                     </label>
                     <input
                         type="text"
@@ -205,6 +197,57 @@ function App() {
                     <h2 style={{ fontSize: 16, margin: '8px 0' }}>Buy Settings</h2>
 
                     <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        productUrl
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.productUrl}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, productUrl: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: '100%' }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        numBuy
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        value={settings.buy.numBuy}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, numBuy: Number(e.target.value || 0) }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        quantityPerBuy
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        value={settings.buy.quantityPerBuy}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, quantityPerBuy: Number(e.target.value || 0) }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        giftCardCode (Single value)
+                    </label>
+                    <textarea
+                        rows={5}
+                        value={settings.buy.giftCardCode}
+                        onChange={e => setSettings(s => ({
+                            ...s,
+                            buy: { ...s.buy, giftCardCode: e.target.value }
+                        }))}
+                        style={{ width: '100%', padding: 8 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
                         promotionCodes
                     </label>
                     <textarea
@@ -213,38 +256,6 @@ function App() {
                         onChange={e => setSettings(s => ({
                             ...s,
                             buy: { ...s.buy, promotionCodes: e.target.value }
-                        }))}
-                        style={{ width: '100%', padding: 8 }}
-                    />
-
-                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
-                        giftCardCodes
-                    </label>
-                    <textarea
-                        rows={5}
-                        value={settings.buy.giftCardCodes}
-                        onChange={e => setSettings(s => ({
-                            ...s,
-                            buy: { ...s.buy, giftCardCodes: e.target.value }
-                        }))}
-                        style={{ width: '100%', padding: 8 }}
-                    />
-                </div>
-            )}
-
-            {tab === 'collectedData' && (
-                <div>
-                    <h2 style={{ fontSize: 16, margin: '8px 0' }}>Collected Data</h2>
-
-                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
-                        promotionCodes
-                    </label>
-                    <textarea
-                        rows={5}
-                        value={settings.collectedData.promotionCodes}
-                        onChange={e => setSettings(s => ({
-                            ...s,
-                            collectedData: { ...s.collectedData, promotionCodes: e.target.value }
                         }))}
                         style={{ width: '100%', padding: 8 }}
                     />

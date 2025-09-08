@@ -1,20 +1,6 @@
-import {
-    type RegisterSettings,
-    type Settings
-} from '../settings'
+import { type RegisterSettings } from '../settings'
 
-
-export async function register(settings: Settings) {
-    const registerSettings: RegisterSettings = settings.register;
-    const api = window.__bbwDom
-    if (!api) {
-        alert('Dom Helper is not injected');
-        return
-    }
-
-    const { printDebug, setVal, waitForSelector, setSelect, setCheckbox, clickButton, waitAndClick, waitForGone } = api
-    printDebug("register <- Enter", registerSettings)
-
+export async function register(settings: RegisterSettings) {
     // Tách chuỗi thành array theo newline
     const splitLines = (s: string): string[] => {
         return s.split(/\r?\n/).map(x => x.trim()).filter(Boolean)
@@ -79,22 +65,31 @@ export async function register(settings: Settings) {
     };
 
     const saveSetting = (promotionCode: string) => {
-        chrome.runtime.sendMessage({ type: 'BBW_PROMOTION_CODE_COLLECTED', data: promotionCode })
+        chrome.runtime.sendMessage({ type: 'PROMOTION_CODE_COLLECTED', data: promotionCode })
     }
 
+    const api = window.__bbwDom
+    if (!api) {
+        alert('Dom Helper is not injected');
+        return
+    }
+
+    const { printDebug, setVal, waitForSelector, setSelect, setCheckbox, clickButton, click, waitForGone } = api
+    printDebug("register <- Enter", settings)
+
     // Chuẩn bị dữ liệu
-    const localPart = generateRandomLocalPart(registerSettings)
-    const domain = normalizeDomain(registerSettings.emailDomain)
+    const localPart = generateRandomLocalPart(settings)
+    const domain = normalizeDomain(settings.emailDomain)
     const email = `${localPart}${domain}`
     printDebug(`Generated email: ${email}`)
 
-    const firstName = pickRandom(splitLines(registerSettings.randomFirstNames)) ?? 'John'
-    const lastName = pickRandom(splitLines(registerSettings.randomLastNames)) ?? 'Doe'
-    const postalCode = pickRandom(splitLines(registerSettings.randomUSZipCodes)) ?? '10001'
-    const phone = generatePhone(splitLines(registerSettings.randomUSAreaCodes))
-    const password = registerSettings.password || '@Haivan2025'
-    const dobMonth = registerSettings.dobMonth || 11
-    const dobDay = registerSettings.dobDay || 23
+    const firstName = pickRandom(splitLines(settings.randomFirstNames)) ?? 'John'
+    const lastName = pickRandom(splitLines(settings.randomLastNames)) ?? 'Doe'
+    const postalCode = pickRandom(splitLines(settings.randomUSZipCodes)) ?? '10001'
+    const phone = generatePhone(splitLines(settings.randomUSAreaCodes))
+    const password = settings.password || '@Haivan2025'
+    const dobMonth = settings.dobMonth - 1 || 11 // zero-based
+    const dobDay = settings.dobDay || 23
 
     // Chờ #register-email loaded và set value
     printDebug(`Waiting for #register-email to appear…`)
@@ -143,19 +138,17 @@ export async function register(settings: Settings) {
     const rewardWalletSel = '[data-dan-component="navlinks-wallet"]'
     const rewardWalletElem = await waitForSelector(rewardWalletSel, { timeoutMs: 60000 })
     if (rewardWalletElem) {
-        const okClick = await waitAndClick(rewardWalletSel, { timeoutMs: 60000, intervalMs: 200 })
-        printDebug(`Click My Rewards Wallet => ${okClick ? 'OK' : 'FAILED'}`)
-        if (okClick) {
-            const promotionCodeSel = '[data-dan-component="copy-reward-code"]'
-            const promotionCodeElem = await waitForSelector(promotionCodeSel, { timeoutMs: 60000 })
-            if (promotionCodeElem) {
-                const promotionCode = (promotionCodeElem?.textContent || '').trim();
-                printDebug(`Promotion code: ${promotionCode ? promotionCode : '(not found)'}`)
-                saveSetting(promotionCode)
-                printDebug(`Saved promotion code to settings.`)
-            } else {
-                printDebug(`Promotion code element did not appear within timeout.`)
-            }
+        await click(rewardWalletElem)
+        printDebug(`Clicked My Rewards Wallet`)
+        const promotionCodeSel = '[data-dan-component="copy-reward-code"]'
+        const promotionCodeElem = await waitForSelector(promotionCodeSel, { timeoutMs: 60000 })
+        if (promotionCodeElem) {
+            const promotionCode = (promotionCodeElem?.textContent || '').trim();
+            printDebug(`Promotion code: ${promotionCode ? promotionCode : '(not found)'}`)
+            saveSetting(promotionCode)
+            printDebug(`Saved promotion code to settings.`)
+        } else {
+            printDebug(`Promotion code element did not appear within timeout.`)
         }
     } else {
         printDebug(`My Reward Wallet did not appear within timeout.`)
@@ -165,12 +158,10 @@ export async function register(settings: Settings) {
     const signOutSel = '[data-dan-component="navlinks-signout"]'
     const signOutElem = await waitForSelector(signOutSel, { timeoutMs: 60000 })
     if (signOutElem) {
-        const okClick = await waitAndClick(signOutSel, { timeoutMs: 60000, intervalMs: 200 })
-        printDebug(`Click Sign Out => ${okClick ? 'OK' : 'FAILED'}`)
-        if (okClick) {
-            const gone = await waitForGone(signOutSel, { timeoutMs: 60000, intervalMs: 200 })
-            printDebug(`Sign Out gone => ${gone ? 'YES' : 'NO (timeout)'}`)
-        }
+        await click(signOutElem)
+        printDebug(`Clicked Sign Out`)
+        const gone = await waitForGone(signOutSel, { timeoutMs: 60000, intervalMs: 200 })
+        printDebug(`Sign Out gone => ${gone ? 'YES' : 'NO (timeout)'}`)
     } else {
         printDebug(`Sign Out did not appear within timeout.`)
     }
