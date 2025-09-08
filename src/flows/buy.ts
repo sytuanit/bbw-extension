@@ -267,8 +267,6 @@ export async function buy(settings: BuySettings) {
         }
 
         // Fill Promotion Code
-        var consumedPromotionCode = null;
-        var restPromotionCodes = null;
         if (settings.promotionCodes) {
             const { code: code, rest: rest } = consumeCode(settings.promotionCodes)
             if (code) {
@@ -297,9 +295,13 @@ export async function buy(settings: BuySettings) {
                         const applyBtnElem = await waitForSelector(applyBtnSel, { timeoutMs: 60000, mustBeEnabled: true })
                         if (applyBtnElem) {
                             await click(applyBtnElem)
-                            consumedPromotionCode = code
-                            restPromotionCodes = rest
-                            printDebug(`Clicked Apply Promotion Code button, consumedPromotionCode: ${consumedPromotionCode}, restPromotionCodes: ${restPromotionCodes}`)
+                            printDebug(`Clicked Apply Promotion Code button, consumedPromotionCode: ${code}, restPromotionCodes: ${rest}`)
+                            chrome.runtime.sendMessage({
+                                type: 'PROMOTION_CODE_CONSUMED', data: {
+                                    consumedPromotionCode: code,
+                                    restPromotionCodes: rest,
+                                }
+                            })
                         }
                     }
                 } else {
@@ -371,43 +373,57 @@ export async function buy(settings: BuySettings) {
         }
 
         const reviewOrderBtnSel = '[data-dan-component="checkout--review-order--btn"]'
-        const reviewOrderBtnElem = await waitForSelector(reviewOrderBtnSel, { timeoutMs: 60000 })
-        if (reviewOrderBtnElem) {
-            await click(reviewOrderBtnElem)
-            await delay(1000)
-            printDebug(`Clicked Review Order button to display error`)
-        } else {
+        let reviewOrderBtnElem = await waitForSelector(reviewOrderBtnSel, { timeoutMs: 60000 })
+        if (!reviewOrderBtnElem) {
             showAlert("Not found Review Order button")
             return { ok: false, ts: Date.now() }
         }
 
-        while (true) {
-            const applyGiftCardAlertSel = '[data-dan-component="check-gift-card-balance-alert--error"]'
-            const applyGiftCardAlertElem = await waitForSelector(applyGiftCardAlertSel, { timeoutMs: 1000 })
-            const isGiftCardValid = !applyGiftCardAlertElem;
+        // await click(reviewOrderBtnElem)
+        // await delay(1000)
+        // printDebug(`Clicked Review Order button to display error`)
 
-            const cardNumberAlertSel = '[data-dan-component="number-field--error-message"]'
-            const cardNumberAlertElem = await waitForSelector(cardNumberAlertSel, { timeoutMs: 1000 })
-            const isCardValid = !cardNumberAlertElem;
-            printDebug(`waiting isGiftCardValid: ${isGiftCardValid}, isCardValid: ${isCardValid}...`)
-            if (isGiftCardValid && isCardValid) {
-                break;
-            }
-            await delay(8000)
-        }
+        // const isReadyToProceed = async () => {
+        //     const applyGiftCardAlertSel = '[data-dan-component="check-gift-card-balance-alert--error"]'
+        //     const applyGiftCardAlertElem = await waitForSelector(applyGiftCardAlertSel, { timeoutMs: 1000 })
+        //     const isGiftCardValid = !applyGiftCardAlertElem
 
-        await click(reviewOrderBtnElem)
-        await delay(1000)
-        printDebug(`Clicked Review Order button after no more error`)
+        //     const cardNumberAlertSel = '[data-dan-component="number-field--error-message"]'
+        //     const cardNumberAlertElem = await waitForSelector(cardNumberAlertSel, { timeoutMs: 1000 })
+        //     const isCardValid = !cardNumberAlertElem
+        //     const result = isGiftCardValid && isCardValid
+        //     printDebug(`isGiftCardValid: ${isGiftCardValid}, isCardValid: ${isCardValid}, isReadyToProceed: ${result}`)
+        //     return result
+        // }
 
-        chrome.runtime.sendMessage({
-            type: 'BUY_SUCCESS', data: {
-                consumedPromotionCode: consumedPromotionCode,
-                restPromotionCodes: restPromotionCodes,
-                consumedGiftCard: consumedGiftCard,
-                restGiftCards: restGiftCards,
-            }
-        })
+        // while (true) {
+        //     if (await isReadyToProceed()) {
+        //         await delay(5000)
+        //         printDebug("passed check ready to proceed 1st, continue check 2nd")
+        //         if (await isReadyToProceed()) { // Double check
+        //             printDebug("passed check ready to proceed 2nd, then proceed auto checkout")
+        //             break;
+        //         }
+        //     }
+        //     await delay(5000)
+        // }
+
+        // reviewOrderBtnElem = await waitForSelector(reviewOrderBtnSel, { timeoutMs: 60000 })
+        // if (reviewOrderBtnElem) { // Auto review order
+        //     await click(reviewOrderBtnElem)
+        //     printDebug(`Clicked Review Order button after no more error`)
+        // }
+
+        // // Click Submit Order
+        // const submitOrderBtnSel = '[data-dan-component="checkout-cta--button"] button'
+        // const submitOrderBtnElem = await waitForSelector(submitOrderBtnSel, { timeoutMs: 60000 })
+        // if (submitOrderBtnElem) {
+        //     // await click(reviewOrderBtnElem)
+        //     printDebug(`Clicked Submit Order button`)
+        // } else {
+        //     showAlert("Not found Submit Order button")
+        //     return { ok: false, ts: Date.now() }
+        // }
 
         printDebug("buy -> Leave")
         return { ok: true, ts: Date.now() } // <<-- trả về để không còn result:null

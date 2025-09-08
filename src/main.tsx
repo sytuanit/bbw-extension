@@ -92,14 +92,12 @@ function App() {
           }
           break
 
-        case Consts.Events.BUY_SUCCESS:
+        case Consts.Events.PROMOTION_CODE_CONSUMED:
           {
             log.debug('Received message:', msg)
             const consumedPromotionCode = msg.data.consumedPromotionCode
             const restPromotionCodes = msg.data.restPromotionCodes
-            const consumedGiftCard = msg.data.consumedGiftCard
-            const restGiftCards = msg.data.restGiftCards
-            log.debug(`Promotion code consumedPromotionCode: ${consumedPromotionCode}, restPromotionCodes: ${restPromotionCodes}, consumedGiftCard: ${consumedGiftCard}, restGiftCards: ${restGiftCards}`)
+            log.debug(`Promotion code consumedPromotionCode: ${consumedPromotionCode}, restPromotionCodes: ${restPromotionCodes}`)
             setSettings(prev => {
               if (!prev) return prev
               const next = {
@@ -107,7 +105,6 @@ function App() {
                 buy: {
                   ...prev.buy,
                   promotionCodes: restPromotionCodes,
-                  giftCardCodes: restGiftCards
                 },
                 history: {
                   ...prev.history,
