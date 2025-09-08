@@ -2,12 +2,24 @@
   "manifest_version": 3,
   "name": "BBW Extension",
   "version": "0.1.0",
-  "description": "Chrome extension popup built with React + Vite",
+  "description": "BBW Extension",
   "action": {
-    "default_title": "Hello React",
+    "default_title": "BBW Extension",
     "default_popup": "index.html"
   },
   "options_page": "options.html",
-  "permissions": ["storage", "scripting", "activeTab"],
-  "host_permissions": ["https://www.bathandbodyworks.com/*"]
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.bathandbodyworks.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }
