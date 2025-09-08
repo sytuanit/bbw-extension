@@ -22,6 +22,7 @@ export type BuySettings = {
   quantityPerBuy: number
   giftCardCodes: string
   promotionCodes: string
+  // Shipping address
   firstName: string
   lastName: string
   address1: string
@@ -31,11 +32,22 @@ export type BuySettings = {
   state: string
   zipCode: string
   phone: string
+  // Card
+  cardNumber: string
+  cardHolderName: string
+  cardExpirationDateMonth: number
+  cardExpirationDateYear: number
+  cardSecurityCode: string
+}
+
+export type Histories = {
+  promotionCodes: string
 }
 
 export type Settings = {
   register: RegisterSettings
   buy: BuySettings
+  history: Histories
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -66,7 +78,15 @@ export const DEFAULT_SETTINGS: Settings = {
     state: "",
     zipCode: "",
     phone: "",
+    cardNumber: "",
+    cardHolderName: "",
+    cardExpirationDateMonth: 9,
+    cardExpirationDateYear: 2025,
+    cardSecurityCode: ""
   },
+  history: {
+    promotionCodes: "",
+  }
 }
 
 const KEY = 'userSettings'
@@ -106,7 +126,15 @@ export async function loadSettings(): Promise<Settings> {
             state: raw.state ?? DEFAULT_SETTINGS.buy.state,
             zipCode: raw.zipCode ?? DEFAULT_SETTINGS.buy.zipCode,
             phone: raw.phone ?? DEFAULT_SETTINGS.buy.phone,
+            cardNumber: raw.cardNumber ?? DEFAULT_SETTINGS.buy.cardNumber,
+            cardHolderName: raw.cardHolderName ?? DEFAULT_SETTINGS.buy.cardHolderName,
+            cardExpirationDateMonth: raw.cardExpirationDateMonth ?? DEFAULT_SETTINGS.buy.cardExpirationDateMonth,
+            cardExpirationDateYear: raw.cardExpirationDateYear ?? DEFAULT_SETTINGS.buy.cardExpirationDateYear,
+            cardSecurityCode: raw.cardSecurityCode ?? DEFAULT_SETTINGS.buy.cardSecurityCode,
           },
+          history: {
+            promotionCodes: raw.promotionCodes ?? DEFAULT_SETTINGS.history.promotionCodes,
+          }
         }
         resolve({ ...DEFAULT_SETTINGS, ...migrated })
         return

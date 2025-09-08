@@ -65,6 +65,10 @@ function App() {
           log.debug(msg.data)
           break
 
+        case Consts.Events.ALERT_REQUESTED:
+          alert(msg.data)
+          break
+
         case Consts.Events.PROMOTION_CODE_COLLECTED:
           {
             log.debug('Received message:', msg)
@@ -88,20 +92,33 @@ function App() {
           }
           break
 
-        case Consts.Events.PROMOTION_CODE_CONSUMED:
+        case Consts.Events.BUY_SUCCESS:
           {
             log.debug('Received message:', msg)
-            const consumed = msg.data.code
-            const rest = msg.data.rest
-            log.debug(`Promotion code consumed: ${consumed}, rest: ${rest}`)
-            // setSettings(prev => {
-            //   if (!prev) return prev
-            //   const next = { ...prev, buy: { ...prev.buy, promotionCodes: rest } }
-            //   settingsRef.current = next
-            //   chrome.storage.sync.set({ userSettings: next })
-            //   return next;
-            // });
-            // log.debug(`Saved promotion code to settings.`)
+            const consumedPromotionCode = msg.data.consumedPromotionCode
+            const restPromotionCodes = msg.data.restPromotionCodes
+            const consumedGiftCard = msg.data.consumedGiftCard
+            const restGiftCards = msg.data.restGiftCards
+            log.debug(`Promotion code consumedPromotionCode: ${consumedPromotionCode}, restPromotionCodes: ${restPromotionCodes}, consumedGiftCard: ${consumedGiftCard}, restGiftCards: ${restGiftCards}`)
+            setSettings(prev => {
+              if (!prev) return prev
+              const next = {
+                ...prev,
+                buy: {
+                  ...prev.buy,
+                  promotionCodes: restPromotionCodes,
+                  giftCardCodes: restGiftCards
+                },
+                history: {
+                  ...prev.history,
+                  promotionCodes: (prev.history.promotionCodes ? prev.history.promotionCodes + '\n' : '') + consumedPromotionCode,
+                }
+              } as Settings
+              settingsRef.current = next
+              chrome.storage.sync.set({ userSettings: next })
+              return next;
+            });
+            log.debug(`Saved promotion code to settings.`)
           }
           break
 

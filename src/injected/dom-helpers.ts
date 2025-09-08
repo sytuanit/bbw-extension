@@ -4,6 +4,7 @@
 export type DomApi = {
     delay: (ms: number) => Promise<void>
     printDebug: (msg: any, ...args: any[]) => void
+    showAlert: (msg: any, ...args: any[]) => void
     setVal: (selector: string, value: string) => boolean
     setSelect: (selector: string, value: string) => boolean
     setCheckbox: (selector: string, desired: boolean) => boolean
@@ -38,6 +39,12 @@ declare global {
         const line = `${msg} ${args.map(a => JSON.stringify(a)).join(' ')}`
         chrome.runtime.sendMessage({ type: 'LOG_REQUESTED', data: line })
     }
+
+    const showAlert: DomApi['showAlert'] = (msg: any, ...args: any[]) => {
+        const line = `${msg} ${args.map(a => JSON.stringify(a)).join(' ')}`
+        chrome.runtime.sendMessage({ type: 'ALERT_REQUESTED', data: line })
+    }
+
 
     const isEnabled = (el: HTMLElement | null) => {
         if (!el) return false
@@ -190,7 +197,7 @@ declare global {
         const intervalMs = opts?.intervalMs ?? 200
         const mustBeEnabled = opts?.mustBeEnabled ?? false
         const start = Date.now()
-        while (Date.now() - start <= timeoutMs) {
+        while (Date.now() - start <= timeoutMs || timeoutMs === 0) {
             const el = document.querySelector<T>(selector)
             if (el && (!mustBeEnabled || isEnabled(el as unknown as HTMLElement))) return el
             await sleep(intervalMs)
@@ -256,6 +263,7 @@ declare global {
     window.__bbwDom = {
         delay,
         printDebug,
+        showAlert,
         setVal,
         setSelect,
         setCheckbox,

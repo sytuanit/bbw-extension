@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from '../settings'
 
-type Tab = 'register' | 'buy' | 'collectedData'
+type Tab = 'register' | 'buy' | 'history'
 
 function App() {
     const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
@@ -12,9 +12,9 @@ function App() {
     const [tab, setTab] = useState<Tab>('register')
 
     useEffect(() => {
-        loadSettings().then(s => { 
+        loadSettings().then(s => {
             setSettings(s)
-            setLoading(false) 
+            setLoading(false)
         })
     }, [])
 
@@ -54,6 +54,14 @@ function App() {
                         background: tab === 'buy' ? '#eef' : '#fff'
                     }}>
                     Buy
+                </button>
+                <button
+                    onClick={() => setTab('history')}
+                    style={{
+                        padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd',
+                        background: tab === 'history' ? '#eef' : '#fff'
+                    }}>
+                    History
                 </button>
             </div>
 
@@ -235,19 +243,6 @@ function App() {
                     />
 
                     <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
-                        giftCardCodes
-                    </label>
-                    <textarea
-                        rows={5}
-                        value={settings.buy.giftCardCodes}
-                        onChange={e => setSettings(s => ({
-                            ...s,
-                            buy: { ...s.buy, giftCardCodes: e.target.value }
-                        }))}
-                        style={{ width: '100%', padding: 8 }}
-                    />
-
-                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
                         promotionCodes
                     </label>
                     <textarea
@@ -256,6 +251,19 @@ function App() {
                         onChange={e => setSettings(s => ({
                             ...s,
                             buy: { ...s.buy, promotionCodes: e.target.value }
+                        }))}
+                        style={{ width: '100%', padding: 8 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        giftCardCodes
+                    </label>
+                    <textarea
+                        rows={5}
+                        value={settings.buy.giftCardCodes}
+                        onChange={e => setSettings(s => ({
+                            ...s,
+                            buy: { ...s.buy, giftCardCodes: e.target.value }
                         }))}
                         style={{ width: '100%', padding: 8 }}
                     />
@@ -366,6 +374,88 @@ function App() {
                             ...s, buy: { ...s.buy, phone: e.target.value }
                         }))}
                         style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        cardNumber
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.cardNumber}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, cardNumber: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        cardHolderName
+                    </label>
+                    <input
+                        type="text"
+                        value={settings.buy.cardHolderName}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, cardHolderName: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        cardExpirationDateMonth
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        value={settings.buy.cardExpirationDateMonth}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, cardExpirationDateMonth: Number(e.target.value || 0) }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        cardExpirationDateYear
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        value={settings.buy.cardExpirationDateYear}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, cardExpirationDateYear: Number(e.target.value || 0) }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        cardSecurityCode
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        value={settings.buy.cardSecurityCode}
+                        onChange={e => setSettings(s => ({
+                            ...s, buy: { ...s.buy, cardSecurityCode: e.target.value }
+                        }))}
+                        style={{ padding: 6, width: 220 }}
+                    />
+                </div>
+            )}
+
+            {tab === 'history' && (
+                <div>
+                    <h2 style={{ fontSize: 16, margin: '8px 0' }}>Histories</h2>
+
+                    <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>
+                        promotionCodes
+                    </label>
+                    <textarea
+                        rows={5}
+                        value={settings.history.promotionCodes}
+                        onChange={e => setSettings(s => ({
+                            ...s,
+                            history: { ...s.history, promotionCodes: e.target.value }
+                        }))}
+                        style={{ width: '100%', padding: 8 }}
                     />
                 </div>
             )}
